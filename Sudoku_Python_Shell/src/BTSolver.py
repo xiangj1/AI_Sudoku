@@ -80,10 +80,9 @@ class BTSolver:
                 v.removeValueFromDomain(lastAssignment.domain.values[0])
                 if v.domain.size() == 1:
                     v.assignValue(v.domain.values[0])
-                    if not self.assignmentsCheck():
-                        return False
-
-
+                    for c in self.network.getConstraintsContainingVariable(v):
+                        if not c.isConsistent():
+                            return False
         return True
 
     """

@@ -46,7 +46,14 @@ class BTSolver:
         Return: true is assignment is consistent, false otherwise
     """
     def forwardChecking ( self ):
-        return False
+        lastAssignment = self.trail.trailStack[-1][0]
+        neighbors = self.network.getNeighborsOfVariable(lastAssignment)
+
+        for v in neighbors:
+            if v.isChangeable():
+                self.trail.push(v)
+                v.removeValueFromDomain(lastAssignment.domain.values[0])
+        return self.assignmentsCheck()
 
     """
         Part 2 TODO: Implement both of Norvig's Heuristics
@@ -64,7 +71,20 @@ class BTSolver:
         Return: true is assignment is consistent, false otherwise
     """
     def norvigCheck ( self ):
-        return False
+        lastAssignment = self.trail.trailStack[-1][0]
+        neighbors = self.network.getNeighborsOfVariable(lastAssignment)
+
+        for v in neighbors:
+            if v.isChangeable():
+                self.trail.push(v)
+                v.removeValueFromDomain(lastAssignment.domain.values[0])
+                if v.domain.size() == 1:
+                    v.assignValue(v.domain.values[0])
+                    if not self.assignmentsCheck():
+                        return False
+
+
+        return True
 
     """
          Optional TODO: Implement your own advanced Constraint Propagation
@@ -94,7 +114,11 @@ class BTSolver:
         Return: The unassigned variable with the smallest domain
     """
     def getMRV ( self ):
-        return None
+        mrv = self.getfirstUnassignedVariable()
+        for v in self.network.variables:
+            if (not v.isAssigned()) and (v.domain.size() < mrv.domain.size()):
+                mrv = v
+        return mrv
 
     """
         Part 2 TODO: Implement the Degree Heuristic

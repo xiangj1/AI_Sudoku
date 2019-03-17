@@ -125,7 +125,38 @@ class BTSolver:
         Return: The unassigned variable with the most unassigned neighbors
     """
     def getDegree ( self ):
-        return None
+        var = self.getfirstUnassignedVariable() # The unassigned variable with the most unassigned neighbors
+        if var == None:
+            return None
+        var_neighbors = self.network.getNeighborsOfVariable(var)
+        var_assigned_neighbors = 0
+        # max_neighbors = len(var_neighbors) #initial the value to the number of neighbors
+
+        # Get the assigned_neighbor of the first node
+        for var_nei in var_neighbors:
+            if var_nei.isAssigned():
+                var_assigned_neighbors += 1
+
+        for v in self.network.variables:
+            if not v.isAssigned():
+                neighbors = self.network.getNeighborsOfVariable(v)  # get v's neighbors
+                assigned_neighbor_size = 0
+
+                for neighbor in neighbors:
+                    if neighbor.isAssigned():
+                        assigned_neighbor_size += 1
+                        if assigned_neighbor_size > var_assigned_neighbors:
+                            break
+
+                if assigned_neighbor_size == 0:
+                    return v
+
+                if assigned_neighbor_size < var_assigned_neighbors:
+                    var = v
+                    var_assigned_neighbors = assigned_neighbor_size
+        return var
+
+
 
     """
         Part 2 TODO: Implement the Minimum Remaining Value Heuristic
@@ -135,7 +166,35 @@ class BTSolver:
                 and, second, the most unassigned neighbors
     """
     def MRVwithTieBreaker ( self ):
-        return None
+        var = self.getfirstUnassignedVariable()
+
+        if var == None:
+            return None
+
+        var_list = []
+        for v in self.network.variables:
+            if (not v.isAssigned()) and (v.domain.size() <= var.domain.size()):
+                if v.domain.size() < var.domain.size():
+                    var = v
+                    var_list.clear()
+                else:
+                    var_list.append(v)
+
+        var_list.append(var)
+
+        most_unassigned_neighbor = 0
+        for v in var_list:
+            v_neighbors = self.network.getNeighborsOfVariable(v)
+            v_unassigned_neighbor = 0
+            for neighbor in v_neighbors:
+                if not neighbor.isAssigned():
+                    v_unassigned_neighbor += 1
+
+            if v_unassigned_neighbor > most_unassigned_neighbor:
+                var = v
+                most_unassigned_neighbor = v_unassigned_neighbor
+
+        return var
 
     """
          Optional TODO: Implement your own advanced Variable Heuristic
@@ -165,8 +224,39 @@ class BTSolver:
                 The LCV is first and the MCV is last
     """
     def getValuesLCVOrder ( self, v ):
-        return None
 
+        if not v:
+            return None
+
+        if v.isAssigned():
+            return v.getValues()
+
+        v_domains = dict()
+        v_neighbors = self.network.getNeighborsOfVariable(v)
+        for value in v.getValues():
+            value_count = 0
+            for neighbor in v_neighbors:
+                if neighbor.domain.contains(value):
+                    value_count += 1
+            v_domains.update({value: value_count})
+
+        return sorted(v_domains)
+        """
+        vDomain = dict()
+        for d in v.domain.values:
+            vDomain[d] = 0
+
+        neighbors = self.network.getNeighborsOfVariable(v)
+        for n in neighbors:
+            for k in vDomain.keys():
+                if k in n.domain.values:
+                    vDomain[k] += 1
+
+        #print("vdomain: ",vDomain)
+        LCV = sorted(vDomain, key = vDomain.__getitem__)
+
+        return LCV
+        """
     """
          Optional TODO: Implement your own advanced Value Heuristic
 

@@ -1,0 +1,9 @@
+.idea/
+
+bin/
+
+*.pyc
+
+.DS_Store
+
+s_Hato.zip
